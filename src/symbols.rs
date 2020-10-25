@@ -1,7 +1,7 @@
 use crate::types::*;
 use std::collections::HashMap;
 
-type SymbolTable = HashMap<String, u16>;
+pub type SymbolTable = HashMap<String, u16>;
 
 const SYMBOLS: [(&str, u16); 23] = [
     ("SP", 0x0000),
@@ -83,8 +83,8 @@ fn process_variable_symbols(symbols: SymbolTable, instructions: &Vec<Instruction
         .1
 }
 
-pub fn process_symbols(instructions: Vec<Instruction>) -> Result<SymbolTable, String> {
+pub fn process_symbols(instructions: &Vec<Instruction>) -> Result<SymbolTable, String> {
     let symbols = get_default_symbols();
-    process_label_symbols(symbols, &instructions)
-        .map(|symbols| process_variable_symbols(symbols, &instructions))
+    process_label_symbols(symbols, instructions)
+        .map(|symbols| process_variable_symbols(symbols, instructions))
 }
