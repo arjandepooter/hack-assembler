@@ -36,7 +36,7 @@ fn get_default_symbols() -> SymbolTable {
         .collect()
 }
 
-fn add_label_symbols(
+fn process_label_symbols(
     symbols: SymbolTable,
     instructions: &Vec<Instruction>,
 ) -> Result<SymbolTable, String> {
@@ -65,14 +65,26 @@ fn add_label_symbols(
         .map(|(_, symbols)| symbols)
 }
 
-fn add_variable_symbols(
-    symbols: SymbolTable,
-    instructions: &Vec<Instruction>,
-) -> Result<SymbolTable, String> {
-    Err("Invalid variable".to_string())
+fn process_variable_symbols(symbols: SymbolTable, instructions: &Vec<Instruction>) -> SymbolTable {
+    instructions
+        .iter()
+        .fold(
+            (0x10u16, symbols.clone()),
+            |(mut address_pointer, mut symbols), instruction| {
+                if let Instruction::AInstruction(AValue::Label(variable)) = instruction {
+                    if !symbols.contains_key(variable) {
+                        symbols.insert(variable.clone(), address_pointer);
+                        address_pointer = address_pointer + 1;
+                    }
+                }
+                (address_pointer, symbols)
+            },
+        )
+        .1
 }
 
 pub fn process_symbols(instructions: Vec<Instruction>) -> Result<SymbolTable, String> {
     let symbols = get_default_symbols();
-    add_label_symbols(symbols, &instructions)
+    process_label_symbols(symbols, &instructions)
+        .map(|symbols| process_variable_symbols(symbols, &instructions))
 }
